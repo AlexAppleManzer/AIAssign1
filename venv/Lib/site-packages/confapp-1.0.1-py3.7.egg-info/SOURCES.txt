@@ -1,0 +1,9 @@
+README.md
+setup.cfg
+setup.py
+confapp/__init__.py
+confapp/settings_manager.py
+confapp.egg-info/PKG-INFO
+confapp.egg-info/SOURCES.txt
+confapp.egg-info/dependency_links.txt
+confapp.egg-info/top_level.txt
