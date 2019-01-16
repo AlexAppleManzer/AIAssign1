@@ -2,12 +2,15 @@ from tkinter import *
 
 
 class ScrollText:
-    # class adapted from dev blog  https://knowpapa.com/scroll-text/
+    # class adapted from dev blog  https://knowpapa.com/scroll-text/'
+
+    count = 0
 
     def __init__(self, frame):
 
         # add a frame and put a text area into it
-        self.text = Text(frame, width=50, state=DISABLED)
+        self.text = Text(frame, width=30)
+        self.text.insert(END, "step\tcommand\t\tresult\n")
 
         # add a vertical scroll bar to the text area
         scroll = Scrollbar(frame)
@@ -19,11 +22,27 @@ class ScrollText:
 
     def write_text(self, text):
         self.text.configure(state=NORMAL)
-        self.text.insert(END, text + "\n")
+        self.text.insert(END, "%d\t" % self.count + text + "\n")
         self.text.configure(state=DISABLED)
+        self.count += 1
 
 
+class Square:
 
+    def __init__(self, x, y, frame):
+        self.frame = frame
+        self.x = x
+        self.y = y
+
+        self.data = self.frame.create_rectangle((self.x * 50 + 10, self.y * 50 + 10), ((self.x + 1) * 50 + 10,
+                                                (self.y + 1) * 50 + 10), fill='red', activefill='green')
+
+    def get_loc(self):
+        answer = (self.x, self.y)
+        return answer
+
+    def remove(self):
+        self.frame.delete(self.data)
 
 
 class Dirt:
@@ -59,7 +78,7 @@ class VacuumCleaner:
 
     def go_up(self):
         if self.field.is_square(self.x, self.y - 1):
-            self.direction.config(text="UP")
+            #self.direction.config(text="UP")
             self.screen.move(self.vacuum, 0, -50)
             self.y -= 1
             return 1
@@ -68,7 +87,7 @@ class VacuumCleaner:
 
     def go_down(self):
         if self.field.is_square(self.x, self.y + 1):
-            self.direction.config(text="DOWN")
+            #self.direction.config(text="DOWN")
             self.screen.move(self.vacuum, 0, 50)
             self.y += 1
             return 1
@@ -77,7 +96,7 @@ class VacuumCleaner:
 
     def go_left(self):
         if self.field.is_square(self.x - 1, self.y):
-            self.direction.config(text="LEFT")
+            #self.direction.config(text="LEFT")
             self.screen.move(self.vacuum, -50, 0)
             self.x -= 1
             return 1
@@ -86,7 +105,7 @@ class VacuumCleaner:
 
     def go_right(self):
         if self.field.is_square(self.x + 1, self.y):
-            self.direction.config(text="RIGHT")
+            #self.direction.config(text="RIGHT")
             self.screen.move(self.vacuum, 50, 0)
             self.x += 1
             return 1
@@ -97,7 +116,7 @@ class VacuumCleaner:
         return [self.x, self.y]
 
     def vacuum_suck(self):
-        self.direction.config(text="SUCK")
+        #self.direction.config(text="SUCK")
         self.field.make_clean(self.x, self.y)
         print("sucking at (%d, %d)..." % (self.x, self.y))
 
@@ -150,7 +169,7 @@ class Field:
             for j in range(self.size[0]):
                 if self.squares[j][i]:
                     print("Drawing square at (%d, %d)..." % (j, i))
-                    self.frame.create_rectangle((i*50 + 10, j*50 + 10), ((i+1)*50 + 10, (j+1)*50 + 10), fill='#000fff000')
+                    Square(j, i, self.frame)
 
                 if self.dirts[j][i]:
                     print("Drawing dirt at (%d, %d)..." % (j, i))
@@ -161,32 +180,45 @@ def init_gui():
 
     root = Tk()
     screen = Canvas(root, width=520, height=520)
-    direction = Label(root, text="nice :)")
+    direction = Label(root, text="Place Squares on Field")
 
     direction.grid(row=0, column=0)
     screen.grid(row=1, column=0)
 
-    botFrame = Frame(root, height=500, width=500)
+    botFrame = Frame(root)
     botFrame.grid(row=2, column=0)
+
+    start = Button(botFrame, text="Start", command=lambda: init_field(root, screen, direction, botFrame, start))
+    start.pack()
+    field = Field(10, 10, screen)
+    place_squares(start, screen, botFrame, field)
+
+    root.mainloop()
+
+
+def place_squares(button, screen, botFrame, field):
+    button.destroy()
+    squares = []
+    for i in range(field.size[1]):
+        squares.append([])
+        for j in range(field.size[0]):
+            squares.append(Square(j, i, screen))
+
+    def on_click(event):
+        print("clicked at", event.x, event.y)
+        print("making square at", (event.x - 15) / 50, (event.y - 15) / 50)
+        field.make_square(int((event.x - 15) / 50), int((event.y - 15) / 50))
+
+    screen.bind("<Button-1>", on_click)
+
+
+def init_field(root, screen, direction, botFrame, button, f):
+    f.draw()
+    v = VacuumCleaner(4, 4, screen, direction, f)
 
     rightframe = Frame(root)
     log = ScrollText(rightframe)
     rightframe.grid(row=1, column=1)
-
-    log.write_text("I")
-    log.write_text("Hate")
-    for i in range(50):
-        log.write_text("%d" % i)
-
-    f = Field(10, 10, screen)
-    f.make_square(5, 5)
-    f.make_square(4, 5)
-    f.make_square(5, 4)
-    f.make_square(4, 4)
-
-    f.make_dirty(4, 4)
-    f.draw()
-    v = VacuumCleaner(4, 4, screen, direction, f)
 
     up = Button(botFrame, text="UP", command=lambda: v.go_up())
     up.pack(side=LEFT)
@@ -202,8 +234,6 @@ def init_gui():
 
     suck = Button(botFrame, text="SUCK", command=lambda: v.vacuum_suck())
     suck.pack(side=LEFT)
-
-    root.mainloop()
 
 
 if __name__ == "__main__":
