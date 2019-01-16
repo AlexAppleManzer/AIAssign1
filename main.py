@@ -1,8 +1,29 @@
 from tkinter import *
 
 root = Tk()
-direction = Label(root, text="nice :)")
 screen = Canvas(root, width=520, height=520)
+
+
+class ScrollText:
+    # class adapted from dev blog  https://knowpapa.com/scroll-text/
+
+    def __init__(self, frame):
+
+        # add a frame and put a text area into it
+        self.text = Text(frame, width=50, state=DISABLED)
+
+        # add a vertical scroll bar to the text area
+        scroll=Scrollbar(frame)
+        self.text.configure(yscrollcommand=scroll.set)
+
+        #pack everything
+        self.text.pack(side=LEFT)
+        scroll.pack(side=RIGHT, fill=Y)
+
+    def write_text
+
+
+
 
 
 class Dirt:
@@ -46,6 +67,7 @@ class VacuumCleaner:
             direction.config(text="DOWN")
             screen.move(self.vacuum, 0, 50)
             self.y += 1
+            return 1
         else:
             return 0
 
@@ -63,6 +85,7 @@ class VacuumCleaner:
             direction.config(text="RIGHT")
             screen.move(self.vacuum, 50, 0)
             self.x += 1
+            return 1
         else:
             return 0
 
@@ -130,11 +153,16 @@ class Field:
 
 def init_gui():
 
-    direction.pack()
-    screen.pack()
+    direction = Label(root, text="nice :)")
+    direction.grid(row=0, column=0)
+    screen.grid(row=1, column=0)
 
     botFrame = Frame(root, height=500, width=500)
-    botFrame.pack(side=BOTTOM)
+    botFrame.grid(row=2, column=0)
+
+    rightframe = Frame(root)
+    log = ScrollText(rightframe)
+    rightframe.grid(row=1, column=1)
 
     f = Field(10, 10)
     f.make_square(5, 5)
@@ -165,4 +193,3 @@ def init_gui():
 if __name__ == "__main__":
     init_gui()
     root.mainloop()
-
