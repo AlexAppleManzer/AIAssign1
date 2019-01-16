@@ -1,5 +1,5 @@
 from tkinter import *
-
+from math import floor
 
 class ScrollText:
     # class adapted from dev blog  https://knowpapa.com/scroll-text/'
@@ -36,10 +36,14 @@ class Square:
 
         self.data = self.frame.create_rectangle((self.x * 50 + 10, self.y * 50 + 10), ((self.x + 1) * 50 + 10,
                                                 (self.y + 1) * 50 + 10), fill='red', activefill='green')
+        print(self.data)
 
     def get_loc(self):
         answer = (self.x, self.y)
         return answer
+
+    def change_color(self, color):
+        self.frame.itemconfig(self.data, fill='%s' % color)
 
     def remove(self):
         self.frame.delete(self.data)
@@ -188,31 +192,39 @@ def init_gui():
     botFrame = Frame(root)
     botFrame.grid(row=2, column=0)
 
-    start = Button(botFrame, text="Start", command=lambda: init_field(root, screen, direction, botFrame, start))
-    start.pack()
     field = Field(10, 10, screen)
-    place_squares(start, screen, botFrame, field)
+    start = Button(botFrame, text="Start", command=lambda: place_squares(root, screen, direction, botFrame, start, field))
+    start.pack()
 
     root.mainloop()
 
 
-def place_squares(button, screen, botFrame, field):
-    button.destroy()
+def place_squares(root, screen, direction, botFrame, start, field):
+    start.destroy()
     squares = []
     for i in range(field.size[1]):
         squares.append([])
         for j in range(field.size[0]):
-            squares.append(Square(j, i, screen))
+            squares[i].append(Square(i, j, screen))
 
     def on_click(event):
         print("clicked at", event.x, event.y)
-        print("making square at", (event.x - 15) / 50, (event.y - 15) / 50)
-        field.make_square(int((event.x - 15) / 50), int((event.y - 15) / 50))
+        x = floor((event.x - 15) / 50)
+        y = floor((event.y - 15) / 50)
+
+        print("making square at", (x, y))
+        field.make_square(x, y)
+        print(squares[x][y].data)
+        squares[x][y].change_color('green')
+
 
     screen.bind("<Button-1>", on_click)
+    start = Button(botFrame, text="Start", command=lambda: init_field(root, screen, direction, botFrame, start, field))
+    start.pack()
 
 
 def init_field(root, screen, direction, botFrame, button, f):
+    screen.delete("all")
     f.draw()
     v = VacuumCleaner(4, 4, screen, direction, f)
 
