@@ -4,39 +4,68 @@ root = Tk()
 direction = Label(root, text="nice :)")
 screen = Canvas(root, width=520, height=520)
 
-class VacuumCleaner:
 
-    p = 0
-    vacuum = 0
+class Dirt:
 
     def __init__(self, x, y):
-        print("hello")
+        self.x = x
+        self.y = y
+
+        dirtphoto = PhotoImage(file="dirt.gif")
+        root.dirtphoto = dirtphoto
+        self.data = screen.create_image((x * 50 + 15, y * 50 + 15), image=dirtphoto, anchor="nw")
+
+    def get_loc(self):
+        answer = (self.x, self.y)
+        return answer
+
+    def remove(self):
+        screen.delete(self.data)
+
+
+class VacuumCleaner:
+
+    def __init__(self, x, y):
         p = PhotoImage(file="vacuum.gif")
+        self.x = x
+        self.y = y
         root.p = p
         self.vacuum = screen.create_image((x*50+10, y*50+10), image=p, anchor='nw')
 
     def go_up(self):
         direction.config(text="UP")
         screen.move(self.vacuum, 0, -50)
+        self.y -= 1
 
     def go_down(self):
         direction.config(text="DOWN")
         screen.move(self.vacuum, 0, 50)
+        self.y += 1
 
     def go_left(self):
         direction.config(text="LEFT")
         screen.move(self.vacuum, -50, 0)
+        self.x -= 1
 
     def go_right(self):
         direction.config(text="RIGHT")
         screen.move(self.vacuum, 50, 0)
+        self.x += 1
+
+    def getpos(self):
+        return [self.x, self.y]
+
+    def vacuum_suck(self, f):
+        direction.config(text="SUCK")
+        f.make_clean(self.x, self.y)
+        print("sucking at (%d, %d)..." % (self.x, self.y))
 
 
-
-class field:
+class Field:
 
     dirts = []
     squares = []
+    dirtImages = []
     size = (0, 0)
 
     def __init__(self, x, y):
@@ -50,11 +79,22 @@ class field:
 
         self.size = (x, y)
 
+    def is_dirt(self, x, y):
+        return self.dirts[x][y]
+
     def make_dirty(self, x, y):
         self.dirts[x][y] = 1
 
     def make_clean(self, x, y):
-        self.dirts[x][y] = 0
+        for i in range(len(self.dirtImages)):
+            if self.dirtImages[i].get_loc() == (x, y):
+                self.dirtImages[i].remove()
+
+    def clean_up(self, x, y):
+        screen.delete(self.dirtImages[self.dirts[x][y]])
+
+    def is_square(self, x, y):
+        return self.squares[x][y]
 
     def make_square(self, x, y):
         self.squares[x][y] = 1
@@ -66,19 +106,12 @@ class field:
         for i in range(self.size[1]):
             for j in range(self.size[0]):
                 if self.squares[j][i]:
-                    print("Drawing (%d, %d)..." % (j, i))
+                    print("Drawing square at (%d, %d)..." % (j, i))
                     screen.create_rectangle((i*50 + 10, j*50 + 10), ((i+1)*50 + 10, (j+1)*50 + 10), fill='#000fff000')
 
-
-def get_coords(x, y):
-    return[x*50+25, y*50 + 25]
-
-
-
-
-
-def vacuum_suck():
-    direction.config(text="SUCK")
+                if self.dirts[j][i]:
+                    print("Drawing dirt at (%d, %d)..." % (j, i))
+                    self.dirtImages.append(Dirt(j, i))
 
 
 def init_gui():
@@ -89,8 +122,9 @@ def init_gui():
     botFrame = Frame(root, height=500, width=500)
     botFrame.pack(side=BOTTOM)
 
-    f = field(10, 10)
+    f = Field(10, 10)
     f.make_square(5, 5)
+    f.make_dirty(4, 4)
     f.draw()
     v = VacuumCleaner(0, 0)
 
@@ -106,7 +140,7 @@ def init_gui():
     right = Button(botFrame, text="RIGHT", command=v.go_right)
     right.pack(side=LEFT)
 
-    suck = Button(botFrame, text="SUCK", command=vacuum_suck)
+    suck = Button(botFrame, text="SUCK", command=lambda: v.vacuum_suck(f))
     suck.pack(side=LEFT)
 
 
