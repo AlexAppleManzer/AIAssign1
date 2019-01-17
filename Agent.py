@@ -1,1 +1,7 @@
-i
+
+class Agent:
+
+    def __init__(self):
+        # initiates agent
+        print("agent generated")
+
