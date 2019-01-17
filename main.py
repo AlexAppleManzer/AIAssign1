@@ -1,6 +1,9 @@
 from tkinter import *
 from math import floor
 
+# tracks number of moves
+tracker = 0
+
 
 class ScrollText:
     # class adapted from dev blog  https://knowpapa.com/scroll-text/'
@@ -152,11 +155,15 @@ class VacuumCleaner:
         # retrieves position of vacuum
         return [self.x, self.y]
 
-    def vacuum_suck(self):
+    def vacuum_suck(self, log):
         # sucks dirt if there is  dirt at the tile
         # self.direction.config(text="SUCK")
-        self.field.make_clean(self.x, self.y)
         print("sucking at (%d, %d)..." % (self.x, self.y))
+        if self.field.make_clean(self.x, self.y):
+            log.write_text("Suck\t\tTrue")
+        else:
+            log.write_text("Suck\t\tFalse")
+
 
 
 class Field:
@@ -199,6 +206,9 @@ class Field:
         for i in range(len(self.dirtImages)):
             if self.dirtImages[i].get_loc() == (x, y):
                 self.dirtImages[i].remove()
+                del self.dirtImages[i]
+                return 1
+        return 0
 
     def is_square(self, x, y):
         # checks if there is a square at location
