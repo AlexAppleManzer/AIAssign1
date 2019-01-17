@@ -35,8 +35,10 @@ class Square:
         self.y = y
 
         self.data = self.frame.create_rectangle((self.x * 50 + 10, self.y * 50 + 10), ((self.x + 1) * 50 + 10,
-                                                (self.y + 1) * 50 + 10), fill='red', activefill='green')
-        print(self.data)
+                                                (self.y + 1) * 50 + 10), fill='red')
+
+    def make_activefill(self):
+        self.frame.itemconfig(self.data, activefill='green')
 
     def get_loc(self):
         answer = (self.x, self.y)
@@ -206,17 +208,33 @@ def place_squares(root, screen, direction, botFrame, start, field):
         squares.append([])
         for j in range(field.size[0]):
             squares[i].append(Square(i, j, screen))
+            squares[i][j].make_activefill()
 
     def on_click(event):
-        print("clicked at", event.x, event.y)
-        x = floor((event.x - 15) / 50)
-        y = floor((event.y - 15) / 50)
+        x = floor((event.x - 10) / 50)
+        y = floor((event.y - 10) / 50)
 
         print("making square at", (x, y))
         field.make_square(x, y)
-        print(squares[x][y].data)
         squares[x][y].change_color('green')
 
+    screen.bind("<Button-1>", on_click)
+    start = Button(botFrame, text="Start", command=lambda: place_dirts(root, screen, direction, botFrame,
+                                                                       start, field, squares))
+    start.pack()
+
+def place_dirts(root, screen, direction, botFrame, start, field, squares):
+    start.destroy()
+    screen.delete("all")
+    field.draw()
+
+    def on_click(event):
+        x = floor((event.x - 10) / 50)
+        y = floor((event.y - 10) / 50)
+
+        print("making dirt at", (x, y))
+        Dirt(x, y, screen)
+        field.make_dirty(x, y)
 
     screen.bind("<Button-1>", on_click)
     start = Button(botFrame, text="Start", command=lambda: init_field(root, screen, direction, botFrame, start, field))
