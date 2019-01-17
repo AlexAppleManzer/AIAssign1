@@ -53,14 +53,15 @@ class Square:
 
 class Dirt:
 
-    def __init__(self, x, y, frame):
+    def __init__(self, x, y, frame, dirtPics):
         self.frame = frame
         self.x = x
         self.y = y
 
-        dirtphoto = PhotoImage(file="dirt.gif")
-        self.frame.dirtphoto = dirtphoto
-        self.data = self.frame.create_image((x * 50 + 15, y * 50 + 15), image=dirtphoto, anchor="nw")
+        self.dp = PhotoImage(file="dirt.gif")
+        frame.dp = self.dp
+        dirtPics.append(self.dp)
+        self.data = self.frame.create_image((x * 50 + 15, y * 50 + 15), image=self.dp, anchor="nw", tags="image")
 
     def get_loc(self):
         answer = (self.x, self.y)
@@ -84,7 +85,7 @@ class VacuumCleaner:
 
     def go_up(self):
         if self.field.is_square(self.x, self.y - 1):
-            #self.direction.config(text="UP")
+            # self.direction.config(text="UP")
             self.screen.move(self.vacuum, 0, -50)
             self.y -= 1
             return 1
@@ -93,7 +94,7 @@ class VacuumCleaner:
 
     def go_down(self):
         if self.field.is_square(self.x, self.y + 1):
-            #self.direction.config(text="DOWN")
+            # self.direction.config(text="DOWN")
             self.screen.move(self.vacuum, 0, 50)
             self.y += 1
             return 1
@@ -132,6 +133,7 @@ class Field:
     dirts = []
     squares = []
     dirtImages = []
+    dirtPics = []
     size = (0, 0)
 
     def __init__(self, x, y, frame):
@@ -179,7 +181,7 @@ class Field:
 
                 if self.dirts[j][i]:
                     print("Drawing dirt at (%d, %d)..." % (j, i))
-                    self.dirtImages.append(Dirt(j, i, self.frame))
+                    self.dirtImages.append(Dirt(j, i, self.frame, self.dirtPics))
 
 
 def init_gui():
@@ -223,6 +225,7 @@ def place_squares(root, screen, direction, botFrame, start, field):
                                                                        start, field, squares))
     start.pack()
 
+
 def place_dirts(root, screen, direction, botFrame, start, field, squares):
     start.destroy()
     screen.delete("all")
@@ -231,20 +234,38 @@ def place_dirts(root, screen, direction, botFrame, start, field, squares):
     def on_click(event):
         x = floor((event.x - 10) / 50)
         y = floor((event.y - 10) / 50)
-
-        print("making dirt at", (x, y))
-        Dirt(x, y, screen)
-        field.make_dirty(x, y)
+        if field.is_square(x, y):
+            print("making dirt at", (x, y))
+            Dirt(x, y, screen, field.dirtPics)
+            field.make_dirty(x, y)
 
     screen.bind("<Button-1>", on_click)
-    start = Button(botFrame, text="Start", command=lambda: init_field(root, screen, direction, botFrame, start, field))
+    start = Button(botFrame, text="Start", command=lambda: place_vacuum(root, screen, direction, botFrame, start, field))
     start.pack()
 
 
-def init_field(root, screen, direction, botFrame, button, f):
+def place_vacuum(root, screen, direction, botFrame, start, field):
+
+    start.destroy()
+
+    def on_click(event):
+        x = floor((event.x - 10) / 50)
+        y = floor((event.y - 10) / 50)
+        if field.is_square(x, y):
+            print("placing Vacuum at", (x, y))
+
+            screen.unbind("<Button-1>")
+            init_field(root, screen, direction, botFrame, field, x, y)
+
+    screen.bind("<Button-1>", on_click)
+
+
+def init_field(root, screen, direction, botFrame, f, x, y):
+
+    screen.unbind("<Button-1>")
     screen.delete("all")
     f.draw()
-    v = VacuumCleaner(4, 4, screen, direction, f)
+    v = VacuumCleaner(x, y, screen, direction, f)
 
     rightframe = Frame(root)
     log = ScrollText(rightframe)
