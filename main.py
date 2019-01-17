@@ -383,3 +383,5 @@ def init_field(root, screen, direction, botFrame, f, x, y):
 
 if __name__ == "__main__":
     init_gui()
+
+
