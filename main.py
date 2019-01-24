@@ -2,7 +2,10 @@ from tkinter import *
 from math import floor
 from random import *
 from Agent import Agent
+import time as time
 
+
+max_steps = 1000
 
 class ScrollText:
     # class adapted from dev blog  https://knowpapa.com/scroll-text/'
@@ -155,7 +158,8 @@ class VacuumCleaner:
 
     def getpos(self):
         # retrieves position of vacuum
-        return [self.x, self.y]
+        pos = (self.x, self.y)
+        return pos
 
     def vacuum_suck(self, log):
         # sucks dirt if there is  dirt at the tile
@@ -196,6 +200,13 @@ class Field:
     def is_dirt(self, x, y):
         # retrieves if there is a dirt at given location
         return self.dirts[x][y]
+
+    def is_dirty(self, x, y):
+        # real time dirt locator
+        for i in range(len(self.dirtImages)):
+            if self.dirtImages[i].get_loc() == (x, y):
+                return 1
+        return 0
 
     def make_dirty(self, x, y):
         # makes the screen dirty at location
@@ -376,41 +387,50 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     screen.delete("all")
     f.draw()
     v = VacuumCleaner(x, y, screen, direction, f)
-    a = Agent()
+    a = Agent(x, y)
 
     rightframe = Frame(root)
     log = ScrollText(rightframe)
     rightframe.grid(row=1, column=1)
 
-    # buttons for manual control
-    up = Button(botFrame, text="UP", command=lambda: v.go_up(log))
-    up.pack(side=LEFT)
+    def step():
+        if log.count <= max_steps:
+            move = a.get_move(f.is_dirty(v.getpos()[0], v.getpos()[1]))
+            if move == 1:
+                a.sense(v.go_up(log))
+            if move == 2:
+                a.sense(v.go_down(log))
+            if move == 3:
+                a.sense(v.go_left(log))
+            if move == 4:
+                a.sense(v.go_right(log))
+            if move == 5:
+                a.sense(v.vacuum_suck(log))
+            if log.count == 1000:
+                direction.config(text="Final Score = %d" % f.score)
+            return 1
+        else:
+            return 0
 
-    down = Button(botFrame, text="DOWN", command=lambda: v.go_down(log))
-    down.pack(side=LEFT)
+    def finish():
+        for i in range(max_steps + 1 - log.count):
+            root.after(400 * i, step)
 
-    left = Button(botFrame, text="LEFT", command=lambda: v.go_left(log))
-    left.pack(side=LEFT)
+    # buttons for AI agent control
+    increment_button = Button(botFrame, text="Increment", command=lambda: step())
+    increment_button.pack(side=LEFT)
 
-    right = Button(botFrame, text="RIGHT", command=lambda: v.go_right(log))
-    right.pack(side=LEFT)
+    finish_button = Button(botFrame, text="Loop to end", command=lambda: finish())
+    finish_button.pack(side=LEFT)
 
-    suck = Button(botFrame, text="SUCK", command=lambda: v.vacuum_suck(log))
-    suck.pack(side=LEFT)
+    #left = Button(botFrame, text="LEFT", command=lambda: v.go_left(log))
+    #left.pack(side=LEFT)
 
-    for i in range(1000):
-        move = a.get_move(0)
-        if move == 1:
-            v.go_up(log)
-        if move == 2:
-            v.go_down(log)
-        if move == 3:
-            v.go_left(log)
-        if move == 4:
-            v.go_right(log)
-        if move == 5:
-            v.vacuum_suck(log)
+    #right = Button(botFrame, text="RIGHT", command=lambda: v.go_right(log))
+    #right.pack(side=LEFT)
 
+    #suck = Button(botFrame, text="SUCK", command=lambda: v.vacuum_suck(log))
+    #suck.pack(side=LEFT)
 
 
 if __name__ == "__main__":
