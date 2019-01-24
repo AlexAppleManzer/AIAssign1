@@ -1,20 +1,18 @@
 from tkinter import *
 from math import floor
-
-# tracks number of moves
-tracker = 0
+from random import *
+from Agent import Agent
 
 
 class ScrollText:
     # class adapted from dev blog  https://knowpapa.com/scroll-text/'
 
-    count = 0
-
+    count = 1
     def __init__(self, frame):
 
         # add a frame and put a text area into it
-        self.text = Text(frame, width=30)
-        self.text.insert(END, "step\tcommand\t\tresult\n")
+        self.text = Text(frame, width=40)
+        self.text.insert(END, "step\tcommand\t\tresult\tScore\n")
 
         # add a vertical scroll bar to the text area
         scroll = Scrollbar(frame)
@@ -105,50 +103,54 @@ class VacuumCleaner:
 
     def go_up(self, log):
         # moves the vacuum up if there is a square available
+        self.field.increment()
         if self.field.is_square(self.x, self.y - 1):
             # self.direction.config(text="UP")
             self.screen.move(self.vacuum, 0, -50)
             self.y -= 1
-            log.write_text("Up\t\tTrue")
+            log.write_text("Up\t\tTrue\t%d" % self.field.score)
             return 1
         else:
-            log.write_text("Up\t\tFalse")
+            log.write_text("Up\t\tFalse\t%d" % self.field.score)
             return 0
 
     def go_down(self, log):
         # moves the vacuum down if there is a square available
+        self.field.increment()
         if self.field.is_square(self.x, self.y + 1):
             # self.direction.config(text="DOWN")
             self.screen.move(self.vacuum, 0, 50)
             self.y += 1
-            log.write_text("Down\t\tTrue")
+            log.write_text("Down\t\tTrue\t%d" % self.field.score)
             return 1
         else:
-            log.write_text("Down\t\tFalse")
+            log.write_text("Down\t\tFalse\t%d" % self.field.score)
             return 0
 
     def go_left(self, log):
         # moves the vacuum left if there is a square available
+        self.field.increment()
         if self.field.is_square(self.x - 1, self.y):
             # self.direction.config(text="LEFT")
             self.screen.move(self.vacuum, -50, 0)
             self.x -= 1
-            log.write_text("Left\t\tTrue")
+            log.write_text("Left\t\tTrue\t%d" % self.field.score)
             return 1
         else:
-            log.write_text("Left\t\tFalse")
+            log.write_text("Left\t\tFalse\t%d" % self.field.score)
             return 0
 
     def go_right(self, log):
         # moves the vacuum right if there is a square available
+        self.field.increment()
         if self.field.is_square(self.x + 1, self.y):
             # self.direction.config(text="RIGHT")
             self.screen.move(self.vacuum, 50, 0)
             self.x += 1
-            log.write_text("Right\t\tTrue")
+            log.write_text("Right\t\tTrue\t%d" % self.field.score)
             return 1
         else:
-            log.write_text("Right\t\tFalse")
+            log.write_text("Right\t\tFalse\t%d" % self.field.score)
             return 0
 
     def getpos(self):
@@ -158,12 +160,12 @@ class VacuumCleaner:
     def vacuum_suck(self, log):
         # sucks dirt if there is  dirt at the tile
         # self.direction.config(text="SUCK")
+        self.field.increment()
         print("sucking at (%d, %d)..." % (self.x, self.y))
         if self.field.make_clean(self.x, self.y):
-            log.write_text("Suck\t\tTrue")
+            log.write_text("Suck\t\tTrue\t%d" % self.field.score)
         else:
-            log.write_text("Suck\t\tFalse")
-
+            log.write_text("Suck\t\tFalse\t%d" % self.field.score)
 
 
 class Field:
@@ -176,6 +178,8 @@ class Field:
 
     def __init__(self, x, y, frame):
         self.frame = frame
+        self.tracker = 0
+        self.score = 0
 
         # creates empty 2 dimensional array to store dirt locations
         self.dirts = [0] * x
@@ -221,6 +225,18 @@ class Field:
     def remove_square(self, x, y):
         # removes square at location
         self.squares[x][y] = 0
+
+    def increment(self):
+        self.tracker += 1
+        if randint(0, 100) <= 10:
+            for i in range(9999):
+                x1 = floor(randint(0, self.size[0] - 1))
+                y1 = floor(randint(0, self.size[1] - 1))
+                if self.is_square(x1, y1):
+                    print("adding dirt")
+                    self.dirtImages.append(Dirt(x1, y1, self.frame, self.dirtPics))
+                    break
+        self.score += len(self.dirtImages)
 
     def draw(self):
         # draws screen with current data of rectangles and squares
@@ -306,8 +322,8 @@ def place_dirts(root, screen, direction, botFrame, start, field, squares):
     # local dirts array
     ds = []
 
-    # on click event for placing dirts
     def on_click(event):
+        # on click event for placing dirts
         x = floor((event.x - 10) / 50)
         y = floor((event.y - 10) / 50)
         if field.is_square(x, y):
@@ -339,8 +355,9 @@ def place_vacuum(root, screen, direction, botFrame, start, field):
 
     start.destroy()
     direction.config(text="Place the starting location for the vacuum")
-    # on click to place vacuum and then start the main phase of the program
+
     def on_click(event):
+        # on click to place vacuum and then start the main phase of the program
         x = floor((event.x - 10) / 50)
         y = floor((event.y - 10) / 50)
         if field.is_square(x, y):
@@ -359,6 +376,7 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     screen.delete("all")
     f.draw()
     v = VacuumCleaner(x, y, screen, direction, f)
+    a = Agent()
 
     rightframe = Frame(root)
     log = ScrollText(rightframe)
@@ -379,6 +397,20 @@ def init_field(root, screen, direction, botFrame, f, x, y):
 
     suck = Button(botFrame, text="SUCK", command=lambda: v.vacuum_suck(log))
     suck.pack(side=LEFT)
+
+    for i in range(1000):
+        move = a.get_move(0)
+        if move == 1:
+            v.go_up(log)
+        if move == 2:
+            v.go_down(log)
+        if move == 3:
+            v.go_left(log)
+        if move == 4:
+            v.go_right(log)
+        if move == 5:
+            v.vacuum_suck(log)
+
 
 
 if __name__ == "__main__":
