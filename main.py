@@ -387,7 +387,7 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     screen.delete("all")
     f.draw()
     v = VacuumCleaner(x, y, screen, direction, f)
-    a = Agent(x, y)
+    a = Agent(x, y, f.squares)
 
     rightframe = Frame(root)
     log = ScrollText(rightframe)
@@ -396,6 +396,8 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     def step():
         if log.count <= max_steps:
             move = a.get_move(f.is_dirty(v.getpos()[0], v.getpos()[1]))
+            if move == 0:
+                f.increment()
             if move == 1:
                 a.sense(v.go_up(log))
             if move == 2:
