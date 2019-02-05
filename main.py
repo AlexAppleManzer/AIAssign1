@@ -266,7 +266,7 @@ class Field:
 def init_gui():
     # initiates the window commands and sets up structure.
     root = Tk()
-    screen = Canvas(root, width=520, height=520)
+    screen = Canvas(root, width=520, height=540)
     direction = Label(root, text="Press Start to begin.")
     direction.grid(row=0, column=0)
     screen.grid(row=1, column=0)
@@ -393,6 +393,8 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     log = ScrollText(rightframe)
     rightframe.grid(row=1, column=1)
 
+    speed = Scale(botFrame, from_= 10, to=400, orient=HORIZONTAL)
+
     def step():
         if log.count <= max_steps:
             move = a.get_move(f.is_dirty(v.getpos()[0], v.getpos()[1]))
@@ -414,9 +416,13 @@ def init_field(root, screen, direction, botFrame, f, x, y):
         else:
             return 0
 
+    jobs = []
+
     def finish():
+        for job in jobs:
+            root.after_cancel(job)
         for i in range(max_steps + 1 - log.count):
-            root.after(400 * i, step)
+            jobs.append(root.after(speed.get() * i, step))
 
     # buttons for AI agent control
     increment_button = Button(botFrame, text="Increment", command=lambda: step())
@@ -425,6 +431,7 @@ def init_field(root, screen, direction, botFrame, f, x, y):
     finish_button = Button(botFrame, text="Loop to end", command=lambda: finish())
     finish_button.pack(side=LEFT)
 
+    speed.pack(side=LEFT)
     #left = Button(botFrame, text="LEFT", command=lambda: v.go_left(log))
     #left.pack(side=LEFT)
 

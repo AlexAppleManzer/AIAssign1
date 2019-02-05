@@ -20,16 +20,16 @@ class Agent:
     def get_move(self, is_dirt):
 
         def can_move(dir):
-            if dir == self.up:
+            if dir == self.up and self.y != 0:
                 return self.squares[self.x][self.y - 1]
 
-            if dir == self.down:
+            if dir == self.down and self.y != 9:
                 return self.squares[self.x][self.y + 1]
 
-            if dir == self.left:
+            if dir == self.left and self.x != 0:
                 return self.squares[self.x - 1][self.y]
 
-            if dir == self.right:
+            if dir == self.right and self.x != 9:
                 return self.squares[self.x + 1][self.y]
 
             return 0
